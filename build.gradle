@@ -1,0 +1,128 @@
+plugins {
+    id "com.github.hierynomus.license" version "0.13.1"
+    id "com.github.johnrengelman.shadow" version "1.2.3"
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'com.github.hierynomus.license'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+group = 'org.lanterpowered'
+archivesBaseName = 'pingy'
+version = '1.0.0-SNAPSHOT'
+
+ext.runFolder = 'run'
+ext.mainClass = 'org.lanternpowered.pingy.Pingy'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+    compile group: 'com.google.code.gson', name: 'gson', version: '2.6.2'
+    compile group: 'io.netty', name: 'netty-all', version: '4.0.21.Final'
+}
+
+// Create the run folder
+task createRunFolder {
+    if (!project.file(runFolder).exists()) {
+        project.file(runFolder).mkdirs()
+    }
+}
+
+tasks.eclipse.dependsOn createRunFolder
+tasks.idea.dependsOn createRunFolder
+
+// Generate application setups, currently only for intellij
+idea.workspace.iws.withXml { provider ->
+    // The app name
+    def appName = 'Pingy Server'
+
+    // Get the run manager node, this will contain the configuration
+    def node = provider.asNode().component.find { it.@name == 'RunManager' }
+
+    // Find the default and custom app node
+    def defaultNode = node.find { it.@type == 'Application' && it.@default == 'true' }
+    def customNode = node.find { it.@type == 'Application' && it.@name == appName }
+
+    // It should always be present
+    if (defaultNode == null) {
+        throw new IllegalStateException('Unable to find the default application config node,' +
+                ' please try to regenerate the intellij project files to resolve this issue.')
+    }
+
+    // Only create a new configuration if the old one is missing
+    if (customNode == null) {
+        customNode = defaultNode.clone()
+        customNode.@default = 'false'
+        customNode.@name = appName
+        customNode.each {
+            if (it.name() == 'option' && it.@name != null) {
+                switch (it.@name) {
+                    case 'MAIN_CLASS_NAME':   it.@value = mainClass;                           break
+                    case 'WORKING_DIRECTORY': it.@value = 'file://$PROJECT_DIR$/' + runFolder; break
+                }
+            } else if (it.name() == 'module') {
+                it.@name = project.name
+            }
+        }
+        node.append customNode
+    }
+}
+
+jar {
+    classifier = 'base'
+    manifest {
+        attributes(
+                'Main-Class': mainClass
+        )
+    }
+}
+
+processResources {
+    from 'LICENSE.txt'
+}
+
+shadowJar {
+    // Empty classifier, this is the final jar
+    classifier = ''
+    // Exclude empty directories
+    includeEmptyDirs = false
+
+    dependencies {
+        include dependency('io.netty:netty-all')
+        include dependency('com.google.code.gson:gson')
+    }
+
+    exclude 'LICENSE', 'NOTICE'
+}
+assemble.dependsOn shadowJar
+
+license {
+    header rootProject.file('HEADER.txt')
+    sourceSets = project.sourceSets
+    include '**/*.java'
+
+    strictCheck true
+    ignoreFailures = false
+
+    ext {
+        name = project.name
+        url = project.url
+        organization = project.organization
+    }
+
+    mapping {
+        java = 'SLASHSTAR_STYLE'
+    }
+}
+
+// Gradle version used for generating the Gradle wrapper
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.13'
+}
