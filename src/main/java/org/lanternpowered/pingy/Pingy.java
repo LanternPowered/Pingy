@@ -114,7 +114,7 @@ public class Pingy {
         }
 
         final Path parent = propsFile.getParent();
-        if (!Files.exists(parent)) {
+        if (parent != null && !Files.exists(parent)) {
             try {
                 Files.createDirectories(parent);
             } catch (IOException e) {

@@ -1,6 +1,6 @@
 plugins {
     id "com.github.hierynomus.license" version "0.13.1"
-    id "com.github.johnrengelman.shadow" version "1.2.3"
+    // id "com.github.johnrengelman.shadow" version "1.2.3"
 }
 
 apply plugin: 'java'
@@ -13,7 +13,7 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 group = 'org.lanterpowered'
-archivesBaseName = 'pingy'
+archivesBaseName = project.name.toLowerCase()
 version = '1.0.0-SNAPSHOT'
 
 ext.runFolder = 'run'
@@ -23,9 +23,16 @@ repositories {
 	mavenCentral()
 }
 
+configurations {
+    netty
+    compile {
+        extendsFrom netty
+    }
+}
+
 dependencies {
     compile group: 'com.google.code.gson', name: 'gson', version: '2.6.2'
-    compile group: 'io.netty', name: 'netty-all', version: '4.0.21.Final'
+    netty group: 'io.netty', name: 'netty-all', version: '4.0.21.Final'
 }
 
 // Create the run folder
@@ -88,14 +95,58 @@ processResources {
     from 'LICENSE.txt'
 }
 
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.lanternpowered.gradle.transformer.DependencyClassTransformer
+
+// A separate task to generate the netty jar,
+// doing this separate to avoid long wait times
+// Run "nettyJar" to update the jar
+task nettyJar(type: ShadowJar) {
+    // The classifier
+    classifier = 'netty'
+    // Exclude empty directories
+    includeEmptyDirs = false
+    // Include all the netty classes into the process
+    from zipTree(project.configurations.netty.first())
+    // Include all the project files to check
+    from sourceSets.main.output
+
+    // Loop through the files and check for the files which
+    // should be included in the final jar
+    transform(DependencyClassTransformer) {
+        // Check only the netty path for dependencies
+        dependencyFiles.include 'io/netty/**'
+        // Just scan all the pingy files
+        filesToScan.include 'org/lanternpowered/pingy/**'
+    }
+}
+
+// Sadly enough does the "overwrite: true" parameter not work,
+// so this task will delete the jar before running nettyJar
+task deleteNettyJar(type: Delete) {
+    delete project.nettyJar.archivePath
+}
+nettyJar.dependsOn deleteNettyJar
+
 shadowJar {
+    // The netty jar should be generated if missing,
+    // regeneration after changes require manual triggering
+    if (!project.nettyJar.archivePath.exists()) {
+        dependsOn nettyJar
+    }
+
     // Empty classifier, this is the final jar
     classifier = ''
     // Exclude empty directories
     includeEmptyDirs = false
 
+    // Make sure that the jar is generated
+    afterEvaluate {
+        // Include the netty classes
+        from zipTree(project.nettyJar.archivePath)
+    }
+
     dependencies {
-        include dependency('io.netty:netty-all')
         include dependency('com.google.code.gson:gson')
     }
 
