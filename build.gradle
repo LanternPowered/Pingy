@@ -4,9 +4,13 @@ buildscript {
         maven {
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
+        maven {
+            url = "http://repo.lanternpowered.org/"
+        }
     }
     dependencies {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.4.0'
+        classpath 'org.lanternpowered:lanterngradle:1.0.0-SNAPSHOT'
     }
 }
 
@@ -31,11 +35,12 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'com.github.hierynomus.license'
+apply plugin: 'org.lanternpowered.gradle'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
-group = 'org.lanterpowered'
+group = 'org.lanternpowered'
 archivesBaseName = project.name.toLowerCase()
 version = '1.0.0-SNAPSHOT'
 
