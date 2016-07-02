@@ -1,6 +1,29 @@
+// Gradle plugins
+buildscript {
+    repositories {
+        maven {
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+    }
+    dependencies {
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.4.0'
+    }
+}
+
 plugins {
     id "com.github.hierynomus.license" version "0.13.1"
     // id "com.github.johnrengelman.shadow" version "1.2.3"
+}
+
+// Environment variables for the build set by the build server
+ext {
+    if (!project.hasProperty('artifactory_contextUrl')) artifactory_contextUrl = System.getenv('artifactory_contextUrl')
+    if (!project.hasProperty('artifactory_username')) artifactory_username = System.getenv('artifactory_username')
+    if (!project.hasProperty('artifactory_password')) artifactory_password = System.getenv('artifactory_password')
+    buildNumber = System.env.BUILD_NUMBER ?: System.env.TRAVIS_BUILD_NUMBER ?: '0'
+    ciSystem = System.env.CI_SYSTEM ?: (System.env.TRAVIS ? 'travis' : null)
+    commit = System.env.GIT_COMMIT ?: System.env.TRAVIS_COMMIT
+    branch = System.env.GIT_BRANCH ?: System.env.TRAVIS_BRANCH
 }
 
 apply plugin: 'java'
@@ -152,7 +175,57 @@ shadowJar {
 
     exclude 'LICENSE', 'NOTICE'
 }
+
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
 assemble.dependsOn shadowJar
+assemble.dependsOn sourceJar
+
+if (artifactory_contextUrl && artifactory_username && artifactory_password) {
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.artifactory'
+
+    publishing {
+        publications {
+            thePublication(MavenPublication) {
+                artifact shadowJar
+                artifact sourceJar
+                artifactId archivesBaseName
+            }
+        }
+    }
+
+    artifactory {
+        contextUrl = "${artifactory_contextUrl}"
+        publish {
+            repository {
+                repoKey = project.version.contains("SNAPSHOT") ? 'libs-snapshot-local' : 'libs-release-local'
+                username = "${artifactory_username}"
+                password = "${artifactory_password}"
+                maven = true
+            }
+            defaults {
+                publications('thePublication')
+                publishArtifacts = true
+            }
+        }
+
+        resolve {
+            repository {
+                repoKey = 'repo'
+                username = "${artifactory_username}"
+                password = "${artifactory_password}"
+                maven = true
+            }
+        }
+    }
+    clientConfig.setIncludeEnvVars(true)
+    clientConfig.info.setBuildNumber(buildNumber)
+    if (ciSystem) clientConfig.info.addEnvironmentProperty('ci-system', ciSystem)
+}
 
 license {
     header rootProject.file('HEADER.txt')
