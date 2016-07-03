@@ -2,10 +2,10 @@
 buildscript {
     repositories {
         maven {
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
         maven {
-            url = "http://repo.lanternpowered.org/"
+            url = 'http://repo.lanternpowered.org:8070/artifactory/libs'
         }
     }
     dependencies {
@@ -16,7 +16,7 @@ buildscript {
 
 plugins {
     id "com.github.hierynomus.license" version "0.13.1"
-    // id "com.github.johnrengelman.shadow" version "1.2.3"
+    id "com.github.johnrengelman.shadow" version "1.2.3"
 }
 
 // Environment variables for the build set by the build server
@@ -36,6 +36,7 @@ apply plugin: 'idea'
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'com.github.hierynomus.license'
 apply plugin: 'org.lanternpowered.gradle'
+apply plugin: 'org.lanternpowered.run-configs'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -63,50 +64,11 @@ dependencies {
     netty group: 'io.netty', name: 'netty-all', version: '4.0.21.Final'
 }
 
-// Create the run folder
-task createRunFolder {
-    if (!project.file(runFolder).exists()) {
-        project.file(runFolder).mkdirs()
-    }
-}
-
-tasks.eclipse.dependsOn createRunFolder
-tasks.idea.dependsOn createRunFolder
-
-// Generate application setups, currently only for intellij
-idea.workspace.iws.withXml { provider ->
-    // The app name
-    def appName = 'Pingy Server'
-
-    // Get the run manager node, this will contain the configuration
-    def node = provider.asNode().component.find { it.@name == 'RunManager' }
-
-    // Find the default and custom app node
-    def defaultNode = node.find { it.@type == 'Application' && it.@default == 'true' }
-    def customNode = node.find { it.@type == 'Application' && it.@name == appName }
-
-    // It should always be present
-    if (defaultNode == null) {
-        throw new IllegalStateException('Unable to find the default application config node,' +
-                ' please try to regenerate the intellij project files to resolve this issue.')
-    }
-
-    // Only create a new configuration if the old one is missing
-    if (customNode == null) {
-        customNode = defaultNode.clone()
-        customNode.@default = 'false'
-        customNode.@name = appName
-        customNode.each {
-            if (it.name() == 'option' && it.@name != null) {
-                switch (it.@name) {
-                    case 'MAIN_CLASS_NAME':   it.@value = mainClass;                           break
-                    case 'WORKING_DIRECTORY': it.@value = 'file://$PROJECT_DIR$/' + runFolder; break
-                }
-            } else if (it.name() == 'module') {
-                it.@name = project.name
-            }
-        }
-        node.append customNode
+runConfigurations {
+    theConfig {
+        name = 'Pingy Server'
+        mainClass = project.mainClass
+        workingDirectory = 'run'
     }
 }
 
@@ -122,9 +84,6 @@ jar {
 processResources {
     from 'LICENSE.txt'
 }
-
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.lanternpowered.gradle.transformer.DependencyClassTransformer
 
 // A separate task to generate the netty jar,
 // doing this separate to avoid long wait times

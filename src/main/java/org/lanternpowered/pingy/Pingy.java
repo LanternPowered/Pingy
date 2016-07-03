@@ -45,6 +45,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -53,15 +54,23 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Pingy {
 
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+    private static void log(PrintStream printStream, String msg) {
+        printStream.printf("[%s] %s\n", TIME_FORMATTER.format(LocalDateTime.now()), msg);
+    }
+
     public static void info(String msg) {
-        System.out.println(msg);
+        log(System.out, msg);
     }
 
     public static void warn(String msg) {
-        System.err.println(msg);
+        log(System.err, msg);
     }
 
     public static void main(String[] args) {
