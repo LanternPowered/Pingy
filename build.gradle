@@ -61,7 +61,7 @@ configurations {
 
 dependencies {
     compile group: 'com.google.code.gson', name: 'gson', version: '2.6.2'
-    netty group: 'io.netty', name: 'netty-all', version: '4.0.21.Final'
+    netty group: 'io.netty', name: 'netty-all', version: '4.1.1.Final'
 }
 
 runConfigurations {
@@ -69,6 +69,7 @@ runConfigurations {
         name = 'Pingy Server'
         mainClass = project.mainClass
         workingDirectory = 'run'
+        programArguments = '--debug'
     }
 }
 
@@ -116,11 +117,7 @@ task deleteNettyJar(type: Delete) {
 nettyJar.dependsOn deleteNettyJar
 
 shadowJar {
-    // The netty jar should be generated if missing,
-    // regeneration after changes require manual triggering
-    if (!project.nettyJar.archivePath.exists()) {
-        dependsOn nettyJar
-    }
+    dependsOn nettyJar
 
     // Empty classifier, this is the final jar
     classifier = ''

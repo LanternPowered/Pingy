@@ -59,7 +59,8 @@ import java.time.format.DateTimeFormatter;
 
 public class Pingy {
 
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static boolean DEBUG_MODE = false;
 
     private static void log(PrintStream printStream, String msg) {
         printStream.printf("[%s] %s\n", TIME_FORMATTER.format(LocalDateTime.now()), msg);
@@ -71,6 +72,20 @@ public class Pingy {
 
     public static void warn(String msg) {
         log(System.err, msg);
+    }
+
+    public static void debugInfo(String msg) {
+        debug(() -> log(System.out, String.format("[DEBUG] %s", msg)));
+    }
+
+    public static void debugWarn(String msg) {
+        debug(() -> log(System.err, String.format("[DEBUG] %s", msg)));
+    }
+
+    public static void debug(Runnable runnable) {
+        if (DEBUG_MODE) {
+            runnable.run();
+        }
     }
 
     public static void main(String[] args) {
@@ -99,6 +114,16 @@ public class Pingy {
                         throw new IllegalArgumentException("The config path is invalid: " + value);
                     }
                     info("Set config path to: " + value);
+                    continue;
+                case "--debug":
+                case "--d":
+                    final String value0 = index < args.length ? args[index] : "--";
+                    if (value0.startsWith("--")) {
+                        DEBUG_MODE = true;
+                    } else {
+                        DEBUG_MODE = Boolean.parseBoolean(value0);
+                        index++;
+                    }
                     continue;
                 // Any other properties?
                 default:
@@ -183,7 +208,17 @@ public class Pingy {
      * @throws IOException
      */
     public void start() throws IOException {
-        final boolean epoll = Epoll.isAvailable() && this.properties.isUseEpollWhenAvailable();
+        boolean epoll = false;
+
+        if (this.properties.isUseEpollWhenAvailable()) {
+            if (Epoll.isAvailable()) {
+                debugInfo("Epoll is available");
+                epoll = true;
+            } else {
+                debugWarn("Epoll is unavailable");
+                debug(() -> Epoll.unavailabilityCause().printStackTrace());
+            }
+        }
 
         final ServerBootstrap bootstrap = new ServerBootstrap();
         final EventLoopGroup group = epoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
