@@ -5,7 +5,7 @@ buildscript {
             url = 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
         maven {
-            url = 'http://repo.lanternpowered.org:8070/artifactory/libs'
+            url = 'http://artifactory.lanternpowered.org/artifactory/libs'
         }
     }
     dependencies {
@@ -209,5 +209,5 @@ license {
 
 // Gradle version used for generating the Gradle wrapper
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.14'
+    gradleVersion = '2.14.1'
 }
