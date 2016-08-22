@@ -5,12 +5,12 @@ buildscript {
             url = 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
         maven {
-            url = 'https://artifactory.lanternpowered.org/artifactory/libs'
+            url = 'https://dl.bintray.com/lanternpowered/maven/'
         }
     }
     dependencies {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.4.0'
-        classpath 'org.lanternpowered:lanterngradle:1.0.0-SNAPSHOT'
+        classpath 'org.lanternpowered:lanterngradle:1.0.0'
     }
 }
 
