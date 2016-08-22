@@ -215,7 +215,9 @@ public class Pingy {
                 debugInfo("Epoll is available");
                 epoll = true;
             } else {
-                debugWarn("Epoll is unavailable");
+                debugWarn("Epoll is unavailable (The following exception is only used to print the cause why it's unavailable, "
+                        + "it won't affect the functionality.)");
+                //noinspection ThrowableResultOfMethodCallIgnored
                 debug(() -> Epoll.unavailabilityCause().printStackTrace());
             }
         }
