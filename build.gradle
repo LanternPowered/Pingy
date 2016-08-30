@@ -43,7 +43,7 @@ targetCompatibility = '1.8'
 
 group = 'org.lanternpowered'
 archivesBaseName = project.name.toLowerCase()
-version = '1.0.0-SNAPSHOT'
+version = '1.0.0'
 
 ext.runFolder = 'run'
 ext.mainClass = 'org.lanternpowered.pingy.Pingy'
