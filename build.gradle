@@ -160,12 +160,12 @@ if (artifactory_contextUrl && artifactory_username && artifactory_password) {
     }
 
     artifactory {
-        contextUrl = "${artifactory_contextUrl}"
+        contextUrl = artifactory_contextUrl
         publish {
             repository {
                 repoKey = project.version.contains("SNAPSHOT") ? 'libs-snapshot-local' : 'libs-release-local'
-                username = "${artifactory_username}"
-                password = "${artifactory_password}"
+                username = artifactory_username
+                password = artifactory_password
                 maven = true
             }
             defaults {
@@ -177,8 +177,8 @@ if (artifactory_contextUrl && artifactory_username && artifactory_password) {
         resolve {
             repository {
                 repoKey = 'repo'
-                username = "${artifactory_username}"
-                password = "${artifactory_password}"
+                username = artifactory_username
+                password = artifactory_password
                 maven = true
             }
         }

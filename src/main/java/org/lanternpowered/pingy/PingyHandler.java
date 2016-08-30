@@ -176,7 +176,7 @@ public final class PingyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         rootObject.add("description", this.properties.getMessageOfTheDay());
         this.properties.getFaviconData().ifPresent(data -> rootObject.addProperty("favicon", data));
 
-        sendMessage(ctx, 0x00, buf -> writeByteArray(buf, new Gson().toJson(rootObject).getBytes(StandardCharsets.UTF_8)));
+        sendMessage(ctx, 0x00, buf -> writeByteArray(buf, GSON.toJson(rootObject).getBytes(StandardCharsets.UTF_8)));
     }
 
     private static ChannelFuture sendMessage(ChannelHandlerContext ctx, int messageId, Consumer<ByteBuf> bufConsumer) {

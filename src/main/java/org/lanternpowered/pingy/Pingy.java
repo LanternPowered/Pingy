@@ -105,6 +105,7 @@ public class Pingy {
                     try {
                         propsFile = Paths.get(value);
                         // Try to parse the file to make sure it's valid
+                        @SuppressWarnings("unused")
                         URL ignore = propsFile.toUri().toURL();
                         // May not be a directory
                         if (Files.isDirectory(propsFile)) {
