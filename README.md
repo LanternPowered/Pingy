@@ -9,6 +9,12 @@ A minimal Minecraft ping server. It is licensed under the [MIT License].
 ## Prerequisites
 * [Java 8]
 
+## Clone
+The following steps will ensure your project is cloned properly.
+
+1. `git clone --recursive https://github.com/LanternPowered/Pingy.git`
+2. `cd Pingy`
+
 ## Building
 __Note:__ If you do not have [Gradle] installed then use ./gradlew for Unix systems or Git Bash and gradlew.bat for Windows systems in place of any 'gradle' command.
 
