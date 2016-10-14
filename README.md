@@ -12,7 +12,7 @@ A minimal Minecraft ping server. It is licensed under the [MIT License].
 ## Clone
 The following steps will ensure your project is cloned properly.
 
-1. `git clone --recursive https://github.com/LanternPowered/Pingy.git`
+1. `git clone https://github.com/LanternPowered/Pingy.git`
 2. `cd Pingy`
 
 ## Building
