@@ -112,6 +112,23 @@ public class PingyProperties {
     @Expose @SerializedName("favicon")
     private String favicon = "";
 
+    /**
+     * The server type, this will affect the icon in the
+     * forge client. Supported values are {@code vanilla},
+     * {@code bukkit} and {@code fml} (or {@code forge}).
+     */
+    @Expose @SerializedName("server-type")
+    private String serverType = "vanilla";
+
+    /**
+     * The mod list tag used by the forge client, all these mods
+     * will be visible when hovering over the server type icon.
+     * This will only work if the {@link #serverType} is {@code fml}
+     * (or {@code forge}).
+     */
+    @Expose @SerializedName("mod-list")
+    private String[] modList = new String[0];
+
     private String faviconData;
 
     public void loadFavicon(Path directory) throws IOException {
@@ -147,6 +164,10 @@ public class PingyProperties {
         } finally {
             buf.release();
         }
+    }
+
+    public String getServerType() {
+        return this.serverType;
     }
 
     public int getPort() {
@@ -187,5 +208,9 @@ public class PingyProperties {
 
     public boolean isUseEpollWhenAvailable() {
         return this.useEpollWhenAvailable;
+    }
+
+    public String[] getModList() {
+        return this.modList;
     }
 }

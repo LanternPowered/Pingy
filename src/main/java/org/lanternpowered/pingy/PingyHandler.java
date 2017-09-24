@@ -159,8 +159,8 @@ public final class PingyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         final Optional<String> optTooltip = this.properties.getOutdatedMessageTooltip();
         if (optTooltip.isPresent()) {
             final JsonObject playersObject = new JsonObject();
-            playersObject.addProperty("max", -1);
-            playersObject.addProperty("online", -1);
+            playersObject.addProperty("max", 0);
+            playersObject.addProperty("online", 0);
             final JsonArray array = new JsonArray();
             for (String name : optTooltip.get().split("\n")) {
                 final JsonObject playerEntry = new JsonObject();
@@ -175,6 +175,18 @@ public final class PingyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         rootObject.add("version", versionObject);
         rootObject.add("description", this.properties.getMessageOfTheDay());
         this.properties.getFaviconData().ifPresent(data -> rootObject.addProperty("favicon", data));
+
+        String serverType = this.properties.getServerType().toUpperCase();
+        if (serverType.equals("FORGE")) {
+            serverType = "FML";
+        }
+
+        // Forge Mod Loader info
+        final JsonObject fmlObject = new JsonObject();
+        fmlObject.addProperty("type", serverType);
+        fmlObject.add("modList", GSON.toJsonTree(this.properties.getModList()));
+
+        rootObject.add("modinfo", fmlObject);
 
         sendMessage(ctx, 0x00, buf -> writeByteArray(buf, GSON.toJson(rootObject).getBytes(StandardCharsets.UTF_8)));
     }
