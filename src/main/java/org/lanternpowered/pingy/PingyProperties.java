@@ -154,7 +154,7 @@ public class PingyProperties {
         final ByteBuf buf = Unpooled.buffer();
         try {
             ImageIO.write(image, "PNG", new ByteBufOutputStream(buf));
-            final ByteBuf base64 = Base64.encode(buf);
+            final ByteBuf base64 = Base64.encode(buf, false);
 
             try {
                 this.faviconData = "data:image/png;base64," + base64.toString(StandardCharsets.UTF_8);
